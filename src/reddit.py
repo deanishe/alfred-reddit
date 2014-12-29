@@ -43,12 +43,13 @@ SUBREDDIT_COUNT = 25
 CACHE_MAX_AGE = 180
 
 # GitHub update settings
-UPDATE_SETTINGS = {'github_slub': 'deanishe/alfred-reddit'}
+UPDATE_SETTINGS = {'github_slug': 'deanishe/alfred-reddit'}
 
 HELP_URL = 'https://github.com/deanishe/alfred-reddit'
 
 
 ICON_REDDIT = os.path.join(os.path.dirname(__file__), 'icon.png')
+ICON_UPDATE = os.path.join(os.path.dirname(__file__), 'update-available.png')
 
 POST_URL = 'http://www.reddit.com/r/{name}/hot.json'
 
@@ -227,6 +228,15 @@ def main(wf):
     ####################################################################
     # Script Filter
     ####################################################################
+
+    # Updates
+    # ------------------------------------------------------------------
+
+    if wf.update_available:
+        wf.add_item('A newer version is available',
+                    'Enter `r/workflow:update` to install',
+                    icon=ICON_UPDATE)
+
     query = args.get('<query>')
 
     log.debug('query : {!r}'.format(query))
