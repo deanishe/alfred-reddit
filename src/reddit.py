@@ -358,8 +358,6 @@ def main(wf):
 
 if __name__ == '__main__':
     wf = Workflow(help_url=HELP_URL,
-                  # TODO: Enable updates
-                  # update_settings=UPDATE_SETTINGS,
-                  )
+                  update_settings=UPDATE_SETTINGS)
     log = wf.logger
     sys.exit(wf.run(main))

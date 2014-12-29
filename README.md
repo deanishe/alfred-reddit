@@ -46,5 +46,5 @@ It's heavily based on [Alfred-Workflow][alfred-workflow], also [MIT-licensed][mi
 [mit]: http://opensource.org/licenses/MIT
 [alfred-workflow]: http://www.deanishe.net/alfred-workflow/
 [logo-source]: https://github.com/FortAwesome/Font-Awesome/issues/372
-[gh-releases]: 
-[packal-page]: 
+[gh-releases]: https://github.com/deanishe/alfred-reddit/releases
+[packal-page]: http://www.packal.org/workflow/reddit
