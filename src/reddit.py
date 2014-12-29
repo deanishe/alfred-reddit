@@ -36,6 +36,9 @@ from workflow import Workflow, web, ICON_WARNING
 # How many posts to retrieve
 POST_COUNT = 50
 
+# How many subreddits to retrieve
+SUBREDDIT_COUNT = 25
+
 # How long to cache results for
 CACHE_MAX_AGE = 180
 
@@ -47,7 +50,11 @@ HELP_URL = 'https://github.com/deanishe/alfred-reddit'
 
 ICON_REDDIT = os.path.join(os.path.dirname(__file__), 'icon.png')
 
-BASE_URL = 'http://reddit.com/r/{name}/hot.json'
+POST_URL = 'http://www.reddit.com/r/{name}/hot.json'
+
+SEARCH_URL = 'http://www.reddit.com/subreddits/search.json'
+
+POPULAR_URL = 'http://www.reddit.com/subreddits/popular.json'
 
 USER_AGENT = 'Alfred-Reddit/{version} ({url})'
 
@@ -97,18 +104,84 @@ def handle_post(api_dict):
     return post
 
 
+def handle_subreddit(api_dict):
+    """Strip down API dict"""
+    data = api_dict.get('data', {})
+    sr = {}
+    sr['name'] = data['display_name']
+    sr['title'] = data['title']
+    sr['type'] = data['subreddit_type']
+
+    return sr
+
+
+def popular_subreddits(limit=SUBREDDIT_COUNT):
+    """Return list of popular subreddits"""
+    log.debug('Fetching list of popular subreddits ...')
+
+    headers = {'user-agent': USER_AGENT.format(version=wf.version,
+                                               url=wf.help_url)}
+
+    params = {'limit': limit}
+
+    r = web.get(POPULAR_URL, params, headers=headers)
+
+    log.debug('[{}] {}'.format(r.status_code, r.url))
+
+    r.raise_for_status()
+
+    subreddits = r.json()['data']['children']
+    # log.debug(pformat(subreddits))
+    subreddits = [handle_subreddit(d) for d in subreddits]
+    subreddits = [d for d in subreddits if d['type'] != 'private']
+
+    for sr in subreddits:
+        log.debug(sr)
+
+    return subreddits
+
+
+def search_subreddits(query, limit=SUBREDDIT_COUNT):
+    """Return list of subreddits matching `query`"""
+    log.debug('Searching for subreddits matching {!r} ...'.format(query))
+    headers = {'user-agent': USER_AGENT.format(version=wf.version,
+                                               url=wf.help_url)}
+
+    params = {'limit': limit, 'q': query}
+
+    r = web.get(SEARCH_URL, params, headers=headers)
+    log.debug('[{}] {}'.format(r.status_code, r.url))
+
+    r.raise_for_status()
+
+    subreddits = r.json()['data']['children']
+
+    subreddits = [handle_subreddit(d) for d in subreddits]
+    # Only show public subreddits
+    subreddits = [d for d in subreddits if d['type'] == 'public']
+
+    for sr in subreddits:
+        log.debug(sr)
+
+    return subreddits
+
+
 def subreddit(name, limit=POST_COUNT):
     """Return list of hot posts on specified subreddit"""
     log.debug('Fetching hot posts in r/{} ...'.format(name))
-    url = BASE_URL.format(name=name)
+    url = POST_URL.format(name=name)
     headers = {'user-agent': USER_AGENT.format(version=wf.version,
                                                url=wf.help_url)}
     params = {'limit': limit}
 
+    log.debug('url : {}'.format(url))
     r = web.get(url, params, headers=headers)
+    log.debug('[{}] {}'.format(r.status_code, r.url))
 
-    if r.status_code == 404:
-        log.info('Not a subreddit : `{}`'.format(name))
+    # API redirects to subreddit search instead of returning a 404 :(
+    if r.status_code == 404 or r.url.startswith(SEARCH_URL):
+        msg = 'Not a subreddit : `{}`'.format(name)
+        log.error(msg)
         return None
 
     r.raise_for_status()
@@ -119,8 +192,12 @@ def subreddit(name, limit=POST_COUNT):
     return posts
 
 
-def search_key(post):
+def post_search_key(post):
     return '{} {}'.format(post['title'], post['author'])
+
+
+def subreddit_search_key(sr):
+    return '{} {}'.format(sr['name'], sr['title'])
 
 
 def main(wf):
@@ -147,26 +224,96 @@ def main(wf):
 
         return 0
 
+    ####################################################################
     # Script Filter
-    # ------------------------------------------------------------------
+    ####################################################################
     query = args.get('<query>')
 
     log.debug('query : {!r}'.format(query))
 
-    if ' ' in query:
-        name, query = query.split(' ')
-        log.debug('name : {!r}  query : {!r}'.format(name, query))
-    else:
-        name = query
-        query = None
+    # Show popular subreddits
+    # ------------------------------------------------------------------
+
+    if query == '':
+
+        subreddits = wf.cached_data('--popular', popular_subreddits,
+                                    max_age=CACHE_MAX_AGE)
+
+        for sr in subreddits:
+
+            wf.add_item(sr['name'],
+                        sr['title'],
+                        autocomplete='{}/'.format(sr['name']),
+                        icon=ICON_REDDIT)
+
+        wf.send_feedback()
+        return 0
+
+    # Parse query
+    # ------------------------------------------------------------------
+
+    # r/blah -> Search for subreddit matching `blah`
+    # r/blah/ -> List hot posts in r/blah
+    # r/blah/wut -> Filter hot posts in r/blah by `wut`
+    m = re.match('([^/]+)(/)?(.+)?', query)
+
+    if not m:
+        wf.add_item('Invalid query',
+                    'Try a different query',
+                    icon=ICON_WARNING)
+        wf.send_feedback()
+        return 0
+
+    name, slash, query = m.groups()
+
+    log.debug('name : {!r} slash : {!r}  query : {!r}'.format(
+              name, slash, query))
+
+    # Search for matching subreddit
+    # ------------------------------------------------------------------
+
+    if not slash:
+
+        key = '--search-{}'.format(cache_key(name))
+
+        subreddits = wf.cached_data(key, lambda: search_subreddits(name),
+                                    max_age=CACHE_MAX_AGE)
+
+        # Filter results because Reddit's search is super-crappy
+        subreddits = wf.filter(name, subreddits,
+                               key=subreddit_search_key,
+                               min_score=30)
+
+        if not subreddits:
+
+            wf.add_item('No matching subreddits found',
+                        'Try a different query',
+                        icon=ICON_WARNING)
+
+        else:  # List all matching subreddits
+
+            for sr in subreddits:
+
+                wf.add_item(sr['name'],
+                            sr['title'],
+                            autocomplete='{}/'.format(sr['name']),
+                            icon=ICON_REDDIT)
+
+        wf.send_feedback()
+        return 0
+
+    # Browse/search within subreddit
+    # ------------------------------------------------------------------
 
     # Filesystem-friendly key
     key = cache_key(name)
 
+    log.debug('Viewing r/{} ...'.format(name))
+
     posts = wf.cached_data(key, lambda: subreddit(name), max_age=CACHE_MAX_AGE)
 
     if posts is None:  # Non-existent subreddit
-        wf.add_item('Not a subreddit: {}'.format(name),
+        wf.add_item('r/{} does not exist'.format(name),
                     'Try a different name',
                     icon=ICON_WARNING)
 
@@ -174,7 +321,7 @@ def main(wf):
         return 0
 
     if query:
-        posts = wf.filter(query, posts, key=search_key, min_score=30)
+        posts = wf.filter(query, posts, key=post_search_key, min_score=30)
 
     if not posts:
         wf.add_item('No matching results found',

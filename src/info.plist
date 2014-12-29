@@ -39,25 +39,8 @@
 		<dict>
 			<key>config</key>
 			<dict>
-				<key>escaping</key>
-				<integer>102</integer>
-				<key>script</key>
-				<string>/usr/bin/python reddit.py --openurl "{query}"</string>
-				<key>type</key>
-				<integer>0</integer>
-			</dict>
-			<key>type</key>
-			<string>alfred.workflow.action.script</string>
-			<key>uid</key>
-			<string>B5317E26-AD8C-418F-9337-F79C30DE316F</string>
-			<key>version</key>
-			<integer>0</integer>
-		</dict>
-		<dict>
-			<key>config</key>
-			<dict>
 				<key>argumenttype</key>
-				<integer>0</integer>
+				<integer>1</integer>
 				<key>escaping</key>
 				<integer>102</integer>
 				<key>keyword</key>
@@ -70,10 +53,12 @@
 				<integer>1</integer>
 				<key>queuemode</key>
 				<integer>1</integer>
+				<key>runningsubtext</key>
+				<string>Querying Reddit.com…</string>
 				<key>script</key>
 				<string>/usr/bin/python reddit.py "{query}"</string>
 				<key>subtext</key>
-				<string>Enter subreddit name</string>
+				<string>Enter subreddit name to get started</string>
 				<key>title</key>
 				<string>Browse Reddit</string>
 				<key>type</key>
@@ -85,6 +70,23 @@
 			<string>alfred.workflow.input.scriptfilter</string>
 			<key>uid</key>
 			<string>B5CF205D-436D-41EC-A53A-555FF106ADDD</string>
+			<key>version</key>
+			<integer>0</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>escaping</key>
+				<integer>102</integer>
+				<key>script</key>
+				<string>/usr/bin/python reddit.py --openurl "{query}"</string>
+				<key>type</key>
+				<integer>0</integer>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.action.script</string>
+			<key>uid</key>
+			<string>B5317E26-AD8C-418F-9337-F79C30DE316F</string>
 			<key>version</key>
 			<integer>0</integer>
 		</dict>
