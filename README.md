@@ -3,6 +3,8 @@
 
 Find subreddits and browse hot posts on [Reddit][reddit].
 
+![][demo]
+
 ## Download ##
 
 Get Reddit for Alfred from [GitHub][gh-releases] or [Packal][packal-page].
@@ -48,3 +50,4 @@ It's heavily based on [Alfred-Workflow][alfred-workflow], also [MIT-licensed][mi
 [logo-source]: https://github.com/FortAwesome/Font-Awesome/issues/372
 [gh-releases]: https://github.com/deanishe/alfred-reddit/releases
 [packal-page]: http://www.packal.org/workflow/reddit
+[demo]: demo.gif
