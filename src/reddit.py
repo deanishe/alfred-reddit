@@ -234,7 +234,8 @@ def main(wf):
 
     if wf.update_available:
         wf.add_item('A newer version is available',
-                    'Enter `r/workflow:update` to install',
+                    '↩ to install update',
+                    autocomplete='workflow:update',
                     icon=ICON_UPDATE)
 
     query = args.get('<query>')
