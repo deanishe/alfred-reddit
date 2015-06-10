@@ -305,9 +305,19 @@ def main(wf):
 
             for sr in subreddits:
 
+                log.debug(repr(sr))
+
+                # Encode arg to send to Run Script
+                arg = json.dumps({
+                    'name': sr['name'],
+                    'title': sr['title'],
+                    'url': 'http://www.reddit.com/r/{}'.format(sr['name'])})
+
                 wf.add_item(sr['name'],
                             sr['title'],
                             autocomplete='{}/'.format(sr['name']),
+                            arg=arg,
+                            valid=True,
                             icon=ICON_REDDIT)
 
         wf.send_feedback()

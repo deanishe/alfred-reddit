@@ -13,8 +13,9 @@ Get Reddit for Alfred from [GitHub][gh-releases] or [Packal][packal-page].
 
 - `r/` — Show list of popular subreddits
 - `r/<query>` — Search for subreddits matching `<query>`
-    - `↩` or `⇥` or `⌘+NUM` — Show 50 hottest posts in subreddit
-- `r/subreddit/` — Show 50 hottest posts on subreddit `<subreddit>`
+    - `⇥` — Show 50 hottest posts in selected subreddit (same as appending `/`)
+    - `↩` or `⌘+NUM` — Open subreddit in browser
+- `r/<subreddit>/` — Show 50 hottest posts on subreddit `<subreddit>`
 - `r/<subreddit>/<query>` — Filter posts by `<query>`
     - `↩` or `⌘+NUM` — Open post URL in default browser
     - `⌘+↩` — Open Reddit comments in default browser
