@@ -370,6 +370,7 @@ def main(wf):
                     arg=arg,
                     largetext=post['title'],
                     valid=True,
+                    quicklookurl=post['permalink'],
                     icon=ICON_REDDIT)
 
     wf.send_feedback()
