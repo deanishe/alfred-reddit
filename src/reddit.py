@@ -31,7 +31,7 @@ import re
 import subprocess
 import sys
 
-from workflow import Workflow, web, ICON_WARNING
+from workflow import Workflow3, web, ICON_WARNING
 
 # How many posts to retrieve
 POST_COUNT = 50
@@ -51,11 +51,11 @@ HELP_URL = 'https://github.com/deanishe/alfred-reddit'
 ICON_REDDIT = os.path.join(os.path.dirname(__file__), 'icon.png')
 ICON_UPDATE = os.path.join(os.path.dirname(__file__), 'update-available.png')
 
-POST_URL = 'http://www.reddit.com/r/{name}/hot.json'
+POST_URL = 'https://www.reddit.com/r/{name}/hot.json'
 
-SEARCH_URL = 'http://www.reddit.com/subreddits/search.json'
+SEARCH_URL = 'https://www.reddit.com/subreddits/search.json'
 
-POPULAR_URL = 'http://www.reddit.com/subreddits/popular.json'
+POPULAR_URL = 'https://www.reddit.com/subreddits/popular.json'
 
 USER_AGENT = 'Alfred-Reddit/{version} ({url})'
 
@@ -94,19 +94,19 @@ def relative_time(timestamp):
 
 
 def handle_post(api_dict):
-    """Strip down API dict"""
+    """Strip down API dict."""
     data = api_dict.get('data', {})
     post = {}
     for key in ('title', 'url', 'author'):
         post[key] = data[key]
     post['timestamp'] = data['created_utc']
     post['reltime'] = relative_time(data['created_utc'])
-    post['permalink'] = 'http://www.reddit.com{}'.format(data['permalink'])
+    post['permalink'] = 'https://www.reddit.com{}'.format(data['permalink'])
     return post
 
 
 def handle_subreddit(api_dict):
-    """Strip down API dict"""
+    """Strip down API dict."""
     data = api_dict.get('data', {})
     sr = {}
     sr['name'] = data['display_name']
@@ -117,7 +117,7 @@ def handle_subreddit(api_dict):
 
 
 def popular_subreddits(limit=SUBREDDIT_COUNT):
-    """Return list of popular subreddits"""
+    """Return list of popular subreddits."""
     log.debug('Fetching list of popular subreddits ...')
 
     headers = {'user-agent': USER_AGENT.format(version=wf.version,
@@ -127,7 +127,7 @@ def popular_subreddits(limit=SUBREDDIT_COUNT):
 
     r = web.get(POPULAR_URL, params, headers=headers)
 
-    log.debug('[{}] {}'.format(r.status_code, r.url))
+    log.debug('[%d] %s', r.status_code, r.url)
 
     r.raise_for_status()
 
@@ -143,15 +143,17 @@ def popular_subreddits(limit=SUBREDDIT_COUNT):
 
 
 def search_subreddits(query, limit=SUBREDDIT_COUNT):
-    """Return list of subreddits matching `query`"""
-    log.debug('Searching for subreddits matching {!r} ...'.format(query))
-    headers = {'user-agent': USER_AGENT.format(version=wf.version,
-                                               url=wf.help_url)}
+    """Return list of subreddits matching `query`."""
+    log.debug('Searching for subreddits matching %r ...', query)
+    headers = {
+        'user-agent': USER_AGENT.format(version=wf.version,
+                                        url=wf.help_url)
+    }
 
     params = {'limit': limit, 'q': query}
 
     r = web.get(SEARCH_URL, params, headers=headers)
-    log.debug('[{}] {}'.format(r.status_code, r.url))
+    log.debug('[%d] %s', r.status_code, r.url)
 
     r.raise_for_status()
 
@@ -169,15 +171,15 @@ def search_subreddits(query, limit=SUBREDDIT_COUNT):
 
 def subreddit(name, limit=POST_COUNT):
     """Return list of hot posts on specified subreddit"""
-    log.debug('Fetching hot posts in r/{} ...'.format(name))
+    log.debug('Fetching hot posts in r/%s ...', name)
     url = POST_URL.format(name=name)
     headers = {'user-agent': USER_AGENT.format(version=wf.version,
                                                url=wf.help_url)}
     params = {'limit': limit}
 
-    log.debug('url : {}'.format(url))
+    log.debug('url : %s', url)
     r = web.get(url, params, headers=headers)
-    log.debug('[{}] {}'.format(r.status_code, r.url))
+    log.debug('[%d] %s', r.status_code, r.url)
 
     # API redirects to subreddit search instead of returning a 404 :(
     if r.status_code == 404 or r.url.startswith(SEARCH_URL):
@@ -194,19 +196,21 @@ def subreddit(name, limit=POST_COUNT):
 
 
 def post_search_key(post):
+    """Search key for post."""
     return '{} {}'.format(post['title'], post['author'])
 
 
 def subreddit_search_key(sr):
+    """Search key for subreddit."""
     return '{} {}'.format(sr['name'], sr['title'])
 
 
 def main(wf):
-
+    """Run workflow."""
     from docopt import docopt
     args = docopt(__doc__, wf.args)
 
-    log.debug('args : {!r}'.format(args))
+    log.debug('args : %r', args)
 
     # Run Script actions
     # ------------------------------------------------------------------
@@ -220,7 +224,7 @@ def main(wf):
         elif args.get('--opencomments'):
             url = d['permalink']
 
-        log.debug('Opening : {}'.format(url))
+        log.debug('Opening : %s', url)
         subprocess.call(['open', url])
 
         return 0
@@ -240,7 +244,7 @@ def main(wf):
 
     query = args.get('<query>')
 
-    log.debug('query : {!r}'.format(query))
+    log.debug('query : %r', query)
 
     # Show popular subreddits
     # ------------------------------------------------------------------
@@ -277,8 +281,7 @@ def main(wf):
 
     name, slash, query = m.groups()
 
-    log.debug('name : {!r} slash : {!r}  query : {!r}'.format(
-              name, slash, query))
+    log.debug('name : %r slash : %r  query : %r', name, slash, query)
 
     # Search for matching subreddit
     # ------------------------------------------------------------------
@@ -308,10 +311,11 @@ def main(wf):
                 log.debug(repr(sr))
 
                 # Encode arg to send to Run Script
+                url = 'https://www.reddit.com/r/{}'.format(sr['name'])
                 arg = json.dumps({
                     'name': sr['name'],
                     'title': sr['title'],
-                    'url': 'http://www.reddit.com/r/{}'.format(sr['name'])})
+                    'url': url})
 
                 wf.add_item(sr['name'],
                             sr['title'],
@@ -329,7 +333,7 @@ def main(wf):
     # Filesystem-friendly key
     key = cache_key(name)
 
-    log.debug('Viewing r/{} ...'.format(name))
+    log.debug('Viewing r/%s ...', name)
 
     posts = wf.cached_data(key, lambda: subreddit(name), max_age=CACHE_MAX_AGE)
 
@@ -375,11 +379,11 @@ def main(wf):
 
     wf.send_feedback()
 
-    log.debug('{} hot posts in subreddit `{}`'.format(len(posts), name))
+    log.debug('%d hot posts in subreddit `%s`', posts, name)
 
 
 if __name__ == '__main__':
-    wf = Workflow(help_url=HELP_URL,
-                  update_settings=UPDATE_SETTINGS)
+    wf = Workflow3(help_url=HELP_URL,
+                   update_settings=UPDATE_SETTINGS)
     log = wf.logger
     sys.exit(wf.run(main))

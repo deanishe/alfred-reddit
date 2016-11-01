@@ -15,6 +15,8 @@
 				<integer>0</integer>
 				<key>modifiersubtext</key>
 				<string></string>
+				<key>vitoclose</key>
+				<false/>
 			</dict>
 			<dict>
 				<key>destinationuid</key>
@@ -23,6 +25,8 @@
 				<integer>1048576</integer>
 				<key>modifiersubtext</key>
 				<string>Open Comments on Reddit</string>
+				<key>vitoclose</key>
+				<false/>
 			</dict>
 		</array>
 	</dict>
@@ -39,6 +43,8 @@
 		<dict>
 			<key>config</key>
 			<dict>
+				<key>alfredfiltersresults</key>
+				<false/>
 				<key>argumenttype</key>
 				<integer>1</integer>
 				<key>escaping</key>
@@ -48,7 +54,7 @@
 				<key>queuedelaycustom</key>
 				<integer>3</integer>
 				<key>queuedelayimmediatelyinitially</key>
-				<true/>
+				<false/>
 				<key>queuedelaymode</key>
 				<integer>1</integer>
 				<key>queuemode</key>
@@ -57,6 +63,10 @@
 				<string>Querying Reddit.com…</string>
 				<key>script</key>
 				<string>/usr/bin/python reddit.py "{query}"</string>
+				<key>scriptargtype</key>
+				<integer>0</integer>
+				<key>scriptfile</key>
+				<string></string>
 				<key>subtext</key>
 				<string>Enter subreddit name to get started</string>
 				<key>title</key>
@@ -71,15 +81,21 @@
 			<key>uid</key>
 			<string>B5CF205D-436D-41EC-A53A-555FF106ADDD</string>
 			<key>version</key>
-			<integer>0</integer>
+			<integer>2</integer>
 		</dict>
 		<dict>
 			<key>config</key>
 			<dict>
+				<key>concurrently</key>
+				<false/>
 				<key>escaping</key>
 				<integer>102</integer>
 				<key>script</key>
-				<string>/usr/bin/python reddit.py --openurl "{query}"</string>
+				<string>/usr/bin/python reddit.py --openurl "$1"</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
 				<key>type</key>
 				<integer>0</integer>
 			</dict>
@@ -88,15 +104,21 @@
 			<key>uid</key>
 			<string>B5317E26-AD8C-418F-9337-F79C30DE316F</string>
 			<key>version</key>
-			<integer>0</integer>
+			<integer>2</integer>
 		</dict>
 		<dict>
 			<key>config</key>
 			<dict>
+				<key>concurrently</key>
+				<false/>
 				<key>escaping</key>
 				<integer>102</integer>
 				<key>script</key>
-				<string>/usr/bin/python reddit.py --opencomments "{query}"</string>
+				<string>/usr/bin/python reddit.py --opencomments "$1"</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
 				<key>type</key>
 				<integer>0</integer>
 			</dict>
@@ -105,29 +127,40 @@
 			<key>uid</key>
 			<string>97C3D420-9480-4147-9E67-77BBD6E1CE36</string>
 			<key>version</key>
-			<integer>0</integer>
+			<integer>2</integer>
 		</dict>
 	</array>
 	<key>readme</key>
-	<string></string>
+	<string>Reddit for Alfred
+=================
+
+Find subreddits and browse hot posts on Reddit.</string>
 	<key>uidata</key>
 	<dict>
 		<key>97C3D420-9480-4147-9E67-77BBD6E1CE36</key>
 		<dict>
+			<key>xpos</key>
+			<integer>310</integer>
 			<key>ypos</key>
-			<real>130</real>
+			<integer>210</integer>
 		</dict>
 		<key>B5317E26-AD8C-418F-9337-F79C30DE316F</key>
 		<dict>
+			<key>xpos</key>
+			<integer>310</integer>
 			<key>ypos</key>
-			<real>10</real>
+			<integer>40</integer>
 		</dict>
 		<key>B5CF205D-436D-41EC-A53A-555FF106ADDD</key>
 		<dict>
+			<key>xpos</key>
+			<integer>40</integer>
 			<key>ypos</key>
-			<real>10</real>
+			<integer>40</integer>
 		</dict>
 	</dict>
+	<key>version</key>
+	<string>1.4</string>
 	<key>webaddress</key>
 	<string></string>
 </dict>

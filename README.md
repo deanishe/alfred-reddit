@@ -1,22 +1,29 @@
 
-# Reddit for Alfred #
+Reddit for Alfred
+=================
 
 Find subreddits and browse hot posts on [Reddit][reddit].
 
 ![][demo]
 
-## Download ##
+
+Download
+--------
 
 Get Reddit for Alfred from [GitHub][gh-releases] or [Packal][packal-page].
 
-## Usage ##
+**Note**: Versions 1.4 and later are *not* compatible with Alfred 2. Please download [v1.3][v1.3] if you're using Alfred 2.
+
+
+Usage
+-----
 
 - `r/` — Show list of popular subreddits
 - `r/<query>` — Search for subreddits matching `<query>`
     - `⇥` — Show 50 hottest posts in selected subreddit (same as appending `/`)
     - `↩` or `⌘+NUM` — Open subreddit in browser
 - `r/<subreddit>/` — Show 50 hottest posts on subreddit `<subreddit>`
-    - `shift` - Show quicklook preview of comments page (Only Alfred 3)
+    - `⇧` or `⌘+Y` — Show quicklook preview of comments page
 - `r/<subreddit>/<query>` — Filter posts by `<query>`
     - `↩` or `⌘+NUM` — Open post URL in default browser
     - `⌘+↩` — Open Reddit comments in default browser
@@ -25,7 +32,9 @@ Get Reddit for Alfred from [GitHub][gh-releases] or [Packal][packal-page].
 **Note:** OS X's "delete word" shortcut (`⌥+⌫`) is very handy for backing
 out of a subreddit.
 
-## Description ##
+
+Description
+-----------
 
 A fairly rudimentary workflow to browse subreddits.
 
@@ -38,7 +47,9 @@ search function.
 Search within a subreddit, `r/subreddit/<query>`, only filters the list of hot
 results. 50 results are retrieved by default.
 
-## Licensing, thanks etc. ##
+
+Licensing, thanks etc.
+----------------------
 
 Alfred-Reddit is released under the [MIT Licence][mit].
 
