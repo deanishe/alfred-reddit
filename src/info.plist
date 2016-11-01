@@ -10,21 +10,11 @@
 		<array>
 			<dict>
 				<key>destinationuid</key>
-				<string>B5317E26-AD8C-418F-9337-F79C30DE316F</string>
+				<string>DCE19CD7-860E-45F4-B4CB-4A45085765B5</string>
 				<key>modifiers</key>
 				<integer>0</integer>
 				<key>modifiersubtext</key>
 				<string></string>
-				<key>vitoclose</key>
-				<false/>
-			</dict>
-			<dict>
-				<key>destinationuid</key>
-				<string>97C3D420-9480-4147-9E67-77BBD6E1CE36</string>
-				<key>modifiers</key>
-				<integer>1048576</integer>
-				<key>modifiersubtext</key>
-				<string>Open Comments on Reddit</string>
 				<key>vitoclose</key>
 				<false/>
 			</dict>
@@ -91,7 +81,7 @@
 				<key>escaping</key>
 				<integer>102</integer>
 				<key>script</key>
-				<string>/usr/bin/python reddit.py --openurl "$1"</string>
+				<string>/usr/bin/python reddit.py $argv</string>
 				<key>scriptargtype</key>
 				<integer>1</integer>
 				<key>scriptfile</key>
@@ -102,30 +92,7 @@
 			<key>type</key>
 			<string>alfred.workflow.action.script</string>
 			<key>uid</key>
-			<string>B5317E26-AD8C-418F-9337-F79C30DE316F</string>
-			<key>version</key>
-			<integer>2</integer>
-		</dict>
-		<dict>
-			<key>config</key>
-			<dict>
-				<key>concurrently</key>
-				<false/>
-				<key>escaping</key>
-				<integer>102</integer>
-				<key>script</key>
-				<string>/usr/bin/python reddit.py --opencomments "$1"</string>
-				<key>scriptargtype</key>
-				<integer>1</integer>
-				<key>scriptfile</key>
-				<string></string>
-				<key>type</key>
-				<integer>0</integer>
-			</dict>
-			<key>type</key>
-			<string>alfred.workflow.action.script</string>
-			<key>uid</key>
-			<string>97C3D420-9480-4147-9E67-77BBD6E1CE36</string>
+			<string>DCE19CD7-860E-45F4-B4CB-4A45085765B5</string>
 			<key>version</key>
 			<integer>2</integer>
 		</dict>
@@ -134,34 +101,38 @@
 	<string>Reddit for Alfred
 =================
 
-Find subreddits and browse hot posts on Reddit.</string>
+Find subreddits and browse hot posts on Reddit.
+
+Set QUICKLOOK_POST to 1 for Quick Look preview (SHIFT or CMD+Y) to show the post instead of the Reddit comments page.</string>
 	<key>uidata</key>
 	<dict>
-		<key>97C3D420-9480-4147-9E67-77BBD6E1CE36</key>
-		<dict>
-			<key>xpos</key>
-			<integer>310</integer>
-			<key>ypos</key>
-			<integer>210</integer>
-		</dict>
-		<key>B5317E26-AD8C-418F-9337-F79C30DE316F</key>
-		<dict>
-			<key>xpos</key>
-			<integer>310</integer>
-			<key>ypos</key>
-			<integer>40</integer>
-		</dict>
 		<key>B5CF205D-436D-41EC-A53A-555FF106ADDD</key>
 		<dict>
+			<key>colorindex</key>
+			<integer>8</integer>
 			<key>xpos</key>
 			<integer>40</integer>
+			<key>ypos</key>
+			<integer>40</integer>
+		</dict>
+		<key>DCE19CD7-860E-45F4-B4CB-4A45085765B5</key>
+		<dict>
+			<key>colorindex</key>
+			<integer>8</integer>
+			<key>xpos</key>
+			<integer>230</integer>
 			<key>ypos</key>
 			<integer>40</integer>
 		</dict>
 	</dict>
+	<key>variables</key>
+	<dict>
+		<key>QUICKLOOK_POST</key>
+		<string>0</string>
+	</dict>
 	<key>version</key>
 	<string>1.4</string>
 	<key>webaddress</key>
-	<string></string>
+	<string>https://github.com/deanishe/alfred-reddit</string>
 </dict>
 </plist>
