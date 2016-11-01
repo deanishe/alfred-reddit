@@ -321,6 +321,7 @@ def main(wf):
                             sr['title'],
                             autocomplete='{}/'.format(sr['name']),
                             arg=arg,
+                            uid=sr['name'],
                             valid=True,
                             icon=ICON_REDDIT)
 
