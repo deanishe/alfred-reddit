@@ -9,6 +9,11 @@
 
 """The :class:`Workflow` object is the main interface to this library.
 
+:class:`Workflow` is targeted at Alfred 2. Use
+:class:`~workflow.workflow3.Workflow3` if you want to use Alfred 3's new
+features, such as :ref:`workflow variables <workflow-variables>` or
+more powerful modifiers.
+
 See :ref:`setup` in the :ref:`user-manual` for an example of how to set
 up your Python script to best utilise the :class:`Workflow` object.
 
@@ -16,6 +21,7 @@ up your Python script to best utilise the :class:`Workflow` object.
 
 from __future__ import print_function, unicode_literals
 
+import atexit
 import binascii
 from contextlib import contextmanager
 import cPickle
@@ -799,6 +805,7 @@ class LockFile(object):
         self.timeout = timeout
         self.delay = delay
         self._locked = False
+        atexit.register(self.release)
 
     @property
     def locked(self):
@@ -812,11 +819,14 @@ class LockFile(object):
         ``False``.
 
         Otherwise, check every `self.delay` seconds until it acquires
-        lock or exceeds `self.timeout` and raises an exception.
+        lock or exceeds `self.timeout` and raises an `~AcquisitionError`.
 
         """
         start = time.time()
         while True:
+
+            self._validate_lockfile()
+
             try:
                 fd = os.open(self.lockfile, os.O_CREAT | os.O_EXCL | os.O_RDWR)
                 with os.fdopen(fd, 'w') as fd:
@@ -825,6 +835,7 @@ class LockFile(object):
             except OSError as err:
                 if err.errno != errno.EEXIST:  # pragma: no cover
                     raise
+
                 if self.timeout and (time.time() - start) >= self.timeout:
                     raise AcquisitionError('Lock acquisition timed out.')
                 if not blocking:
@@ -834,10 +845,36 @@ class LockFile(object):
         self._locked = True
         return True
 
+    def _validate_lockfile(self):
+        """Check existence and validity of lockfile.
+
+        If the lockfile exists, but contains an invalid PID
+        or the PID of a non-existant process, it is removed.
+
+        """
+        try:
+            with open(self.lockfile) as fp:
+                s = fp.read()
+        except Exception:
+            return
+
+        try:
+            pid = int(s)
+        except ValueError:
+            return self.release()
+
+        from background import _process_exists
+        if not _process_exists(pid):
+            self.release()
+
     def release(self):
         """Release the lock by deleting `self.lockfile`."""
         self._locked = False
-        os.unlink(self.lockfile)
+        try:
+            os.unlink(self.lockfile)
+        except (OSError, IOError) as err:  # pragma: no cover
+            if err.errno != 2:
+                raise err
 
     def __enter__(self):
         """Acquire lock."""
@@ -1081,6 +1118,7 @@ class Workflow(object):
         self._settings_path = None
         self._settings = None
         self._bundleid = None
+        self._debugging = None
         self._name = None
         self._cache_serializer = 'cpickle'
         self._data_serializer = 'cpickle'
@@ -1138,6 +1176,8 @@ class Workflow(object):
         ============================  =========================================
         Variable                      Description
         ============================  =========================================
+        alfred_debug                  Set to ``1`` if Alfred's debugger is
+                                      open, otherwise unset.
         alfred_preferences            Path to Alfred.alfredpreferences
                                       (where your workflows and settings are
                                       stored).
@@ -1178,6 +1218,7 @@ class Workflow(object):
         data = {}
 
         for key in (
+                'alfred_debug',
                 'alfred_preferences',
                 'alfred_preferences_localhash',
                 'alfred_theme',
@@ -1195,7 +1236,8 @@ class Workflow(object):
             value = os.getenv(key)
 
             if isinstance(value, str):
-                if key in ('alfred_version_build', 'alfred_theme_subtext'):
+                if key in ('alfred_debug', 'alfred_version_build',
+                           'alfred_theme_subtext'):
                     value = int(value)
                 else:
                     value = self.decode(value)
@@ -1228,6 +1270,21 @@ class Workflow(object):
                 self._bundleid = unicode(self.info['bundleid'], 'utf-8')
 
         return self._bundleid
+
+    @property
+    def debugging(self):
+        """Whether Alfred's debugger is open.
+
+        :returns: ``True`` if Alfred's debugger is open.
+        :rtype: ``bool``
+
+        """
+        if self._debugging is None:
+            if self.alfred_env.get('debug') == 1:
+                self._debugging = True
+            else:
+                self._debugging = False
+        return self._debugging
 
     @property
     def name(self):
@@ -1358,10 +1415,10 @@ class Workflow(object):
     def _default_cachedir(self):
         """Alfred 2's default cache directory."""
         return os.path.join(
-                os.path.expanduser(
-                    '~/Library/Caches/com.runningwithcrayons.Alfred-2/'
-                    'Workflow Data/'),
-                self.bundleid)
+            os.path.expanduser(
+                '~/Library/Caches/com.runningwithcrayons.Alfred-2/'
+                'Workflow Data/'),
+            self.bundleid)
 
     @property
     def datadir(self):
@@ -1475,7 +1532,7 @@ class Workflow(object):
 
     @property
     def logfile(self):
-        """Return path to logfile.
+        """Path to logfile.
 
         :returns: path to logfile within workflow's cache directory
         :rtype: ``unicode``
@@ -1485,7 +1542,10 @@ class Workflow(object):
 
     @property
     def logger(self):
-        """Create and return a logger that logs to both console and a log file.
+        """Logger that logs to both console and a log file.
+
+        If Alfred's debugger is open, log level will be ``DEBUG``,
+        else it will be ``INFO``.
 
         Use :meth:`open_log` to open the log file in Console.
 
@@ -1507,7 +1567,7 @@ class Workflow(object):
 
             logfile = logging.handlers.RotatingFileHandler(
                 self.logfile,
-                maxBytes=1024*1024,
+                maxBytes=1024 * 1024,
                 backupCount=1)
             logfile.setFormatter(fmt)
             logger.addHandler(logfile)
@@ -1516,7 +1576,11 @@ class Workflow(object):
             console.setFormatter(fmt)
             logger.addHandler(console)
 
-        logger.setLevel(logging.DEBUG)
+        if self.debugging:
+            logger.setLevel(logging.DEBUG)
+        else:
+            logger.setLevel(logging.INFO)
+
         self._logger = logger
 
         return self._logger
@@ -1910,26 +1974,30 @@ class Workflow(object):
         By default, :meth:`filter` uses all of the following flags (i.e.
         :const:`MATCH_ALL`). The tests are always run in the given order:
 
-        1. :const:`MATCH_STARTSWITH` : Item search key startswith
-            ``query``(case-insensitive).
-        2. :const:`MATCH_CAPITALS` : The list of capital letters in item
-            search key starts with ``query`` (``query`` may be
-            lower-case). E.g., ``of`` would match ``OmniFocus``,
-            ``gc`` would match ``Google Chrome``.
-        3. :const:`MATCH_ATOM` : Search key is split into "atoms" on
-            non-word characters (.,-,' etc.). Matches if ``query`` is
-            one of these atoms (case-insensitive).
-        4. :const:`MATCH_INITIALS_STARTSWITH` : Initials are the first
-            characters of the above-described "atoms" (case-insensitive).
-        5. :const:`MATCH_INITIALS_CONTAIN` : ``query`` is a substring of
-            the above-described initials.
-        6. :const:`MATCH_INITIALS` : Combination of (4) and (5).
-        7. :const:`MATCH_SUBSTRING` : Match if ``query`` is a substring
-            of item search key (case-insensitive).
-        8. :const:`MATCH_ALLCHARS` : Matches if all characters in
-            ``query`` appear in item search key in the same order
+        1. :const:`MATCH_STARTSWITH`
+            Item search key starts with ``query`` (case-insensitive).
+        2. :const:`MATCH_CAPITALS`
+            The list of capital letters in item search key starts with
+            ``query`` (``query`` may be lower-case). E.g., ``of``
+            would match ``OmniFocus``, ``gc`` would match ``Google Chrome``.
+        3. :const:`MATCH_ATOM`
+            Search key is split into "atoms" on non-word characters
+            (.,-,' etc.). Matches if ``query`` is one of these atoms
             (case-insensitive).
-        9. :const:`MATCH_ALL` : Combination of all the above.
+        4. :const:`MATCH_INITIALS_STARTSWITH`
+            Initials are the first characters of the above-described
+            "atoms" (case-insensitive).
+        5. :const:`MATCH_INITIALS_CONTAIN`
+            ``query`` is a substring of the above-described initials.
+        6. :const:`MATCH_INITIALS`
+            Combination of (4) and (5).
+        7. :const:`MATCH_SUBSTRING`
+            ``query`` is a substring of item search key (case-insensitive).
+        8. :const:`MATCH_ALLCHARS`
+            All characters in ``query`` appear in item search key in
+            the same order (case-insensitive).
+        9. :const:`MATCH_ALL`
+            Combination of all the above.
 
 
         :const:`MATCH_ALLCHARS` is considerably slower than the other
@@ -2188,7 +2256,8 @@ class Workflow(object):
                         name = self._bundleid
                     else:  # pragma: no cover
                         name = os.path.dirname(__file__)
-                    self.add_item("Error in workflow '%s'" % name, unicode(err),
+                    self.add_item("Error in workflow '%s'" % name,
+                                  unicode(err),
                                   icon=ICON_ERROR)
                     self.send_feedback()
             return 1
@@ -2367,7 +2436,11 @@ class Workflow(object):
         :returns: ``True`` if an update is available, else ``False``
 
         """
-        update_data = self.cached_data('__workflow_update_status', max_age=0)
+        # Create a new workflow object to ensure standard serialiser
+        # is used (update.py is called without the user's settings)
+        update_data = Workflow().cached_data('__workflow_update_status',
+                                             max_age=0)
+
         self.logger.debug('update_data : {0}'.format(update_data))
 
         if not update_data or not update_data.get('available'):
