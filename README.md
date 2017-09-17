@@ -10,7 +10,7 @@ Find subreddits and browse hot posts on [Reddit][reddit].
 Download
 --------
 
-Get Reddit for Alfred from [GitHub][gh-releases] or [Packal][packal-page].
+Get Reddit for Alfred from [GitHub][gh-releases].
 
 **Note**: Version 1.4 (and above) is *not* compatible with Alfred 2. Please download [v1.3][v13] if you're using Alfred 2.
 
@@ -69,6 +69,5 @@ It's heavily based on [Alfred-Workflow][alfred-workflow], also [MIT-licensed][mi
 [alfred-workflow]: http://www.deanishe.net/alfred-workflow/
 [logo-source]: https://github.com/FortAwesome/Font-Awesome/issues/372
 [gh-releases]: https://github.com/deanishe/alfred-reddit/releases
-[packal-page]: http://www.packal.org/workflow/reddit
 [demo]: https://raw.githubusercontent.com/deanishe/alfred-reddit/master/demo.gif
 [v13]: https://github.com/deanishe/alfred-reddit/releases/tag/v1.3
