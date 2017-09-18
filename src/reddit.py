@@ -77,6 +77,10 @@ ICON_UPDATE = os.path.join(os.path.dirname(__file__), 'update-available.png')
 
 # JSON list of hot posts in subreddit
 HOT_POSTS_URL = 'https://www.reddit.com/r/{name}/hot.json'
+# HOT_POSTS_URL = 'https://www.reddit.com/{name}/hot.json'
+
+# JSON list of hot posts in user multi
+USER_MULTI_HOT_URL = 'https://www.reddit.com/{name}.json'
 
 # JSON subreddit search
 SEARCH_URL = 'https://www.reddit.com/subreddits/search.json'
@@ -85,7 +89,10 @@ SEARCH_URL = 'https://www.reddit.com/subreddits/search.json'
 POPULAR_URL = 'https://www.reddit.com/subreddits/popular.json'
 
 # HTML URL of subreddit
-SUBREDDIT_URL = 'https://www.reddit.com/r/{display_name}/'
+SUBREDDIT_URL = 'https://www.reddit.com/r/{name}/'
+
+# HTML URL of user multi
+USER_MULTI_URL = 'https://www.reddit.com/{name}/'
 
 # HTML URL of post
 POST_URL = 'https://www.reddit.com{permalink}'
@@ -186,7 +193,7 @@ def parse_subreddit(api_dict):
         'name': d['display_name'],
         'title': d['title'],
         'type': d['subreddit_type'],
-        'url': SUBREDDIT_URL.format(**d),
+        'url': subreddit_url(d['display_name']),
     }
 
 
@@ -210,18 +217,15 @@ def popular_subreddits(limit=SUBREDDIT_COUNT, after=None):
     data = r.json()['data']
     after = data['after']
     subreddits = data['children']
-    # log.debug(pformat(subreddits))
+
     subreddits = [parse_subreddit(d) for d in subreddits]
     subreddits = [d for d in subreddits if d['type'] != 'private']
-
-    for sr in subreddits:
-        log.debug(sr)
 
     return subreddits, after
 
 
 def search_subreddits(query, limit=SUBREDDIT_COUNT):
-    """Return list of subreddits matching `query`."""
+    """Return list of subreddits matching ``query``."""
     log.debug('Searching for subreddits matching %r ...', query)
     headers = {
         'user-agent': USER_AGENT.format(version=wf.version,
@@ -250,7 +254,7 @@ def search_subreddits(query, limit=SUBREDDIT_COUNT):
 def hot_posts(name, limit=POST_COUNT):
     """Return list of hot posts on specified subreddit."""
     log.debug('Fetching hot posts in r/%s ...', name)
-    url = HOT_POSTS_URL.format(name=name)
+    url = hot_url(name)
     headers = {'user-agent': USER_AGENT.format(version=wf.version,
                                                url=wf.help_url)}
     params = {'limit': limit}
@@ -282,6 +286,20 @@ def subreddit_search_key(sr):
     """Search key for subreddit."""
     return sr['name']
     # return '{} {}'.format(sr['name'], sr['title'])
+
+
+def subreddit_url(name):
+    """Make URL for subreddit."""
+    if name.startswith('u/'):  # user multi
+        return USER_MULTI_URL.format(name=name)
+    return SUBREDDIT_URL.format(name=name)
+
+
+def hot_url(name):
+    """Make URL for hot posts."""
+    if name.startswith('u/'):  # user multi
+        return USER_MULTI_HOT_URL.format(name=name)
+    return HOT_POSTS_URL.format(name=name)
 
 
 # dP   dP   dP                   dP       .8888b dP
@@ -324,11 +342,14 @@ def remember_subreddit(name=None):
     if name:
         last = wf.cached_data('--last', max_age=0, session=True) or {}
         sr = last.get(name)
+        if not sr:  # must be a multi
+            sr = dict(name=name, title=name, type="public",
+                      url=subreddit_url(name))
     else:
         sr = subreddit_from_env()
 
     if not sr:
-        # log.debug('no subreddit to save to history')
+        log.debug('no subreddit to save to history')
         return
 
     subreddits = wf.cached_data('__history', max_age=0) or []
@@ -342,6 +363,32 @@ def remember_subreddit(name=None):
     wf.cache_data('__history', subreddits)
     log.debug('added %r to history', sr['name'])
     log.debug('%d subreddit(s) in history', len(subreddits))
+
+
+def parse_query(query):
+    """Parse ``query`` into ``name``, ``slash``, ``query``.
+
+    Args:
+        query (unicode): User query
+
+    Returns:
+        tuple: ``name``, ``slash``, ``query``.
+
+    """
+    # r/blah -> Search for subreddit matching `blah`
+    # r/blah/ -> List hot posts in r/blah
+    # r/blah/wut -> Filter hot posts in r/blah by `wut`
+    m = re.match('(u/\w+/m/[^/]+)(/)(.+)?', query)  # user multi
+    if not m:
+        m = re.match('([^/]+)(/)?(.+)?', query)  # normal subreddit
+
+    if not m:
+        return None, None, None
+
+    name, slash, query = m.groups()
+
+    log.debug('name : %r slash : %r  query : %r', name, slash, query)
+    return name, slash, query
 
 
 def show_top():
@@ -473,6 +520,9 @@ def show_posts(name, query):
         wf.send_feedback()
         return 0
 
+    # Add to history
+    remember_subreddit(name)
+
     if query:
         posts = wf.filter(query, posts, key=post_search_key, min_score=30)
 
@@ -591,24 +641,16 @@ def main(wf):
     if query == '':
         return show_top()
 
-    # Parse query
+    # Show subreddit or posts
     # ------------------------------------------------------------------
 
-    # r/blah -> Search for subreddit matching `blah`
-    # r/blah/ -> List hot posts in r/blah
-    # r/blah/wut -> Filter hot posts in r/blah by `wut`
-    m = re.match('([^/]+)(/)?(.+)?', query)
-
-    if not m:
+    name, slash, query = parse_query(query)
+    if not name:
         wf.add_item('Invalid query',
                     'Try a different query',
                     icon=ICON_WARNING)
         wf.send_feedback()
         return 0
-
-    name, slash, query = m.groups()
-
-    log.debug('name : %r slash : %r  query : %r', name, slash, query)
 
     # Search for matching subreddit
     # ------------------------------------------------------------------
@@ -617,7 +659,6 @@ def main(wf):
 
     # Browse/search within subreddit
     # ------------------------------------------------------------------
-    remember_subreddit(name)
     return show_posts(name, query)
 
 

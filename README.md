@@ -31,7 +31,8 @@ Usage
     - `⌘+↩` — Open Reddit comments in default browser
     - `⌥+↩` — Open article and Reddit comments in default browser
     - `⌘+L` — Show full post title in Alfred's Large Type window
-    - `⇧` or `⌘+Y` — Show Quick Look preview of comments page (or post. See [
+    - `⇧` or `⌘+Y` — Show Quick Look preview of comments page (or post)
+- `r/u/<username>/m/<multi>/[<query>]` — Show 50 hottest posts on user multireddit.
 
 **Note:** OS X's "delete word" shortcut (`⌥+⌫`) is very handy for backing out of a subreddit.
 

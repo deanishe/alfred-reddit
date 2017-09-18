@@ -56,9 +56,9 @@
 				<key>runningsubtext</key>
 				<string>Querying Reddit.com…</string>
 				<key>script</key>
-				<string>/usr/bin/python reddit.py "{query}"</string>
+				<string>/usr/bin/python reddit.py "$1"</string>
 				<key>scriptargtype</key>
-				<integer>0</integer>
+				<integer>1</integer>
 				<key>scriptfile</key>
 				<string></string>
 				<key>subtext</key>
@@ -124,7 +124,7 @@ Set QUICKLOOK_POST to 1 for Quick Look preview (SHIFT or CMD+Y) to show the post
 			<key>colorindex</key>
 			<integer>8</integer>
 			<key>xpos</key>
-			<integer>230</integer>
+			<integer>250</integer>
 			<key>ypos</key>
 			<integer>40</integer>
 		</dict>
@@ -135,7 +135,7 @@ Set QUICKLOOK_POST to 1 for Quick Look preview (SHIFT or CMD+Y) to show the post
 		<string>0</string>
 	</dict>
 	<key>version</key>
-	<string>1.5</string>
+	<string>1.6</string>
 	<key>webaddress</key>
 	<string>https://github.com/deanishe/alfred-reddit</string>
 </dict>
