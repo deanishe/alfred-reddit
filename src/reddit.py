@@ -16,12 +16,13 @@ Usage:
     reddit.py <query>
     reddit.py --search <query>
     reddit.py --update
-    reddit.py [-c] [-p] [-s]
+    reddit.py [-c] [-p] [-s] [-b]
 
 Options:
     -c, --comments        Open Reddit comments page in browser
     -p, --post            Open post in browser
     -s, --subreddit       Open subreddit in browser
+    -b, --submit          Submit link/text to subreddit
     --search <query>      Search for subreddits using API
     -u, --update          Update list of top subreddits
     -h, --help            Show this help text
@@ -415,6 +416,9 @@ def show_top():
         it.add_modifier('cmd',
                         'View "r/{}" in browser'.format(sr['name']),
                         valid=True).setvar('argv', '-s')
+        it.add_modifier('alt',
+                        'Make post in "r/{}" in browser'.format(sr['name']),
+                        valid=True).setvar('argv', '-b')
 
     if is_running('top'):
         wf.rerun = 0.2
@@ -591,6 +595,10 @@ def main(wf):
     if args.get('--subreddit'):
         remember_subreddit()
         open_url(os.getenv('subreddit_url'))
+        return
+
+    if args.get('--submit'):
+        open_url(os.getenv('subreddit_url') + 'submit')
         return
 
     ####################################################################
