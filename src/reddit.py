@@ -497,6 +497,9 @@ def show_search(name):
         it.setvar('subreddit_type', sr['type'])
         it.setvar('subreddit_url', url)
         it.setvar('argv', '-s')
+        it.add_modifier('alt',
+                        'Make post in "r/{}" in browser'.format(sr['name']),
+                        valid=True).setvar('argv', '-b')
 
     wf.send_feedback()
     return
