@@ -22,10 +22,12 @@ Usage
 	- `⇥`, `↩` or `⌘+NUM` — Show 50 hottest posts in selected subreddit
 	- `⌘+↩` — Open subreddit in browser
 	- `⇧` or `⌘+Y` — Show Quick Look preview of subreddit
+    - `⌥+↩` - Make post in the subreddit
 - `r/<query>` — Search for subreddits matching `<query>`
     - `⇥` — Show 50 hottest posts in selected subreddit (same as appending `/`)
     - `↩` or `⌘+NUM` — Open subreddit in browser
     - `⇧` or `⌘+Y` — Show Quick Look preview of subreddit
+    - `⌥+↩` - Make post in the subreddit
 - `r/<subreddit>/[<query>]` — Show 50 hottest posts on subreddit `<subreddit>`, filtered by `<query>` if present
     - `↩` or `⌘+NUM` — Open article in default browser
     - `⌘+↩` — Open Reddit comments in default browser
