@@ -54,7 +54,11 @@ Search within a subreddit, `r/subreddit/<query>`, only filters the list of hot r
 Configuration
 -------------
 
-There is one option, `QUICKLOOK_POST`, in the workflow's configuration sheet (in Alfred Preferences). Set `QUICKLOOK_POST` to `1` for the Quick Look preview to show the article instead of the Reddit comment page.
+There are a couple of options in the workflow's [configuration sheet][config-sheet].
+
+Set `NSFW` to `1` to include subreddits marked "over 18" in search results.
+
+Set `QUICKLOOK_POST` to `1` for the Quick Look preview to show the article instead of the Reddit comment page.
 
 
 Licensing, thanks etc.
@@ -74,3 +78,4 @@ It's heavily based on [Alfred-Workflow][alfred-workflow], also [MIT-licensed][mi
 [gh-releases]: https://github.com/deanishe/alfred-reddit/releases
 [demo]: https://raw.githubusercontent.com/deanishe/alfred-reddit/master/demo.gif
 [v13]: https://github.com/deanishe/alfred-reddit/releases/tag/v1.3
+[config-sheet]: https://www.alfredapp.com/help/workflows/advanced/variables/#environment

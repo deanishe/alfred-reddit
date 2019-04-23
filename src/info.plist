@@ -107,6 +107,8 @@
 
 Find subreddits and browse hot posts on Reddit.
 
+Set NSFW to 1 to include subreddits marked NSFW.
+
 Set QUICKLOOK_POST to 1 for Quick Look preview (SHIFT or CMD+Y) to show the post instead of the Reddit comments page.</string>
 	<key>uidata</key>
 	<dict>
@@ -124,18 +126,20 @@ Set QUICKLOOK_POST to 1 for Quick Look preview (SHIFT or CMD+Y) to show the post
 			<key>colorindex</key>
 			<integer>8</integer>
 			<key>xpos</key>
-			<integer>250</integer>
+			<integer>230</integer>
 			<key>ypos</key>
 			<integer>40</integer>
 		</dict>
 	</dict>
 	<key>variables</key>
 	<dict>
+		<key>NSFW</key>
+		<string>0</string>
 		<key>QUICKLOOK_POST</key>
 		<string>0</string>
 	</dict>
 	<key>version</key>
-	<string>1.7</string>
+	<string>1.8.0</string>
 	<key>webaddress</key>
 	<string>https://github.com/deanishe/alfred-reddit</string>
 </dict>

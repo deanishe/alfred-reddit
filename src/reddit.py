@@ -56,10 +56,10 @@ POST_COUNT = 50
 SUBREDDIT_COUNT = 25
 
 # How long to cache searches for subreddits for
-SEARCH_CACHE_MAX_AGE = 3600
+SEARCH_CACHE_MAX_AGE = 3600  # 1 hour
 
 # How long to cache lists of posts for
-POSTS_CACHE_MAX_AGE = 180
+POSTS_CACHE_MAX_AGE = 180  # 3 minutes
 
 # How long to cache list of top subreddits
 TOP_CACHE_MAX_AGE = 86400  # 1 day
@@ -67,14 +67,17 @@ TOP_CACHE_MAX_AGE = 86400  # 1 day
 # How many top reddits to cache
 TOP_COUNT = 500
 
+# Include NSFW subreddits
+NSFW = os.getenv('NSFW', '0').lower() in ('1', 'true', 'yes', 'on')
+
 # GitHub update settings
 UPDATE_SETTINGS = {'github_slug': 'deanishe/alfred-reddit'}
 
 HELP_URL = 'https://github.com/deanishe/alfred-reddit'
 
 
-ICON_REDDIT = os.path.join(os.path.dirname(__file__), 'icon.png')
-ICON_UPDATE = os.path.join(os.path.dirname(__file__), 'update-available.png')
+ICON_REDDIT = 'icon.png'
+ICON_UPDATE = 'update-available.png'
 
 # JSON list of hot posts in subreddit
 HOT_POSTS_URL = 'https://www.reddit.com/r/{name}/hot.json'
@@ -225,7 +228,7 @@ def popular_subreddits(limit=SUBREDDIT_COUNT, after=None):
     return subreddits, after
 
 
-def search_subreddits(query, limit=SUBREDDIT_COUNT):
+def search_subreddits(query, limit=SUBREDDIT_COUNT, nsfw=NSFW):
     """Return list of subreddits matching ``query``."""
     log.debug('Searching for subreddits matching %r ...', query)
     headers = {
@@ -233,7 +236,8 @@ def search_subreddits(query, limit=SUBREDDIT_COUNT):
                                         url=wf.help_url)
     }
 
-    params = {'limit': limit, 'q': query}
+    nsfw = 1 if NSFW else 0
+    params = {'limit': limit, 'q': query, 'include_over_18': nsfw}
 
     r = web.get(SEARCH_URL, params, headers=headers)
     log.debug('[%d] %s', r.status_code, r.url)
@@ -356,7 +360,7 @@ def remember_subreddit(name=None):
     subreddits = wf.cached_data('__history', max_age=0) or []
     log.debug('%d subreddit(s) in history', len(subreddits))
     for d in subreddits:
-        if sr['name'] == d['name']:
+        if sr['name'].lower() == d['name'].lower():
             log.debug('%r already in history', sr['name'])
             return
 
@@ -379,9 +383,9 @@ def parse_query(query):
     # r/blah -> Search for subreddit matching `blah`
     # r/blah/ -> List hot posts in r/blah
     # r/blah/wut -> Filter hot posts in r/blah by `wut`
-    m = re.match('(u/\w+/m/[^/]+)(/)(.+)?', query)  # user multi
+    m = re.match(r'(u/\w+/m/[^/]+)(/)(.+)?', query)  # user multi
     if not m:
-        m = re.match('([^/]+)(/)?(.+)?', query)  # normal subreddit
+        m = re.match(r'([^/]+)(/)?(.+)?', query)  # normal subreddit
 
     if not m:
         return None, None, None
@@ -427,11 +431,12 @@ def show_top():
     return 0
 
 
-def show_search(name):
+def show_search(name, nsfw=NSFW):
     """List subreddits matching `name`."""
+    nsfw = 'nsfw-' if nsfw else ''
     top = wf.cached_data('__top', max_age=0) or []
     history = wf.cached_data('__history', max_age=0) or []
-    key = '--search-{}'.format(cache_key(name))
+    key = '--search-{}{}'.format(nsfw, cache_key(name))
 
     # Load cached results for name or start search in background
     cached = wf.cached_data(key, None, SEARCH_CACHE_MAX_AGE) or []
@@ -618,11 +623,12 @@ def main(wf):
     # Search using API and cache results
     if args.get('--search'):
         name = wf.decode(args.get('--search'))
-        key = '--search-{}'.format(cache_key(name))
+        nsfw = 'nsfw-' if NSFW else ''
+        key = '--search-{}{}'.format(nsfw, cache_key(name))
         log.info('searching API for %r ...', name)
         subreddits = search_subreddits(name)
         wf.cache_data(key, subreddits)
-        log.info('API returned %d subreddits for %r', len(subreddits), name)
+        log.info('API returned %d subreddit(s) for %r', len(subreddits), name)
         # Tidy up cache in a background task to keep things snappy
         clear_cache()
         return
