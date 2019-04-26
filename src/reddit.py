@@ -32,6 +32,7 @@ Options:
 from __future__ import print_function, unicode_literals, absolute_import
 
 from datetime import datetime
+from HTMLParser import HTMLParser
 from functools import partial
 import os
 import re
@@ -153,6 +154,12 @@ def relative_time(timestamp):
         return '1 sec ago'
 
 
+def decode_html_entities(s):
+    """Decode HTML entities into Unicode."""
+    h = HTMLParser()
+    return h.unescape(s)
+
+
 def subreddit_from_env():
     """Return subreddit based on env vars."""
     sr = dict(
@@ -179,7 +186,7 @@ def parse_post(api_dict):
     """Strip down API dict."""
     d = api_dict.get('data', {})
     post = {
-        'title': d['title'],
+        'title': decode_html_entities(d['title']),
         'post_url': d['url'],
         'author': d['author'],
         'timestamp': d['created_utc'],
@@ -195,7 +202,7 @@ def parse_subreddit(api_dict):
     d = api_dict.get('data', {})
     return {
         'name': d['display_name'],
-        'title': d['title'],
+        'title': decode_html_entities(d['title']),
         'type': d['subreddit_type'],
         'url': subreddit_url(d['display_name']),
     }

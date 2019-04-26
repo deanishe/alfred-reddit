@@ -139,7 +139,7 @@ Set QUICKLOOK_POST to 1 for Quick Look preview (SHIFT or CMD+Y) to show the post
 		<string>0</string>
 	</dict>
 	<key>version</key>
-	<string>1.8.0</string>
+	<string>1.8.1</string>
 	<key>webaddress</key>
 	<string>https://github.com/deanishe/alfred-reddit</string>
 </dict>
